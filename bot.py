@@ -46,30 +46,52 @@ class Form(StatesGroup):
     reason = State()
     hero = State()
 
-# ================== КЛАВИАТУРА ==================
-start_keyboard = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="🔄 Начать заново")]],
+# ================== КЛАВИАТУРЫ ==================
+main_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="📥 Скинуть реплей")]],
+    resize_keyboard=True,
+)
+
+cancel_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="❌ Отмена")]],
     resize_keyboard=True,
 )
 
 # ================== ХЕНДЛЕРЫ ==================
+
+# /start — приветствие с кнопкой
 @dp.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
-    await state.set_state(Form.match_id)
     await message.answer(
-        "Привет! 👋\n\nВведи ID матча (только цифры):",
-        reply_markup=start_keyboard,
+        "Здаров бандит\n\n"
+        "Есть топовый реплей и хочешь скинуть? С радостью посмотрим что у тебя там",
+        reply_markup=main_keyboard,
     )
 
 
-@dp.message(F.text == "🔄 Начать заново")
-async def restart(message: Message, state: FSMContext):
+# Нажатие «📥 Скинуть реплей» — старт диалога
+@dp.message(F.text == "📥 Скинуть реплей")
+async def start_replay(message: Message, state: FSMContext):
     await state.clear()
     await state.set_state(Form.match_id)
-    await message.answer("Начинаем заново!\n\nВведи ID матча (только цифры):")
+    await message.answer(
+        "Введи ID матча (только цифры):",
+        reply_markup=cancel_keyboard,
+    )
 
 
+# Отмена — возврат в главное меню
+@dp.message(F.text == "❌ Отмена")
+async def cancel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Отменено. Если захочешь скинуть реплей — нажми кнопку ниже.",
+        reply_markup=main_keyboard,
+    )
+
+
+# ШАГ 1: ID матча
 @dp.message(Form.match_id)
 async def process_match_id(message: Message, state: FSMContext):
     if not message.text.isdigit():
@@ -80,6 +102,7 @@ async def process_match_id(message: Message, state: FSMContext):
     await message.answer("Почему именно этот реплей?")
 
 
+# ШАГ 2: Причина
 @dp.message(Form.reason)
 async def process_reason(message: Message, state: FSMContext):
     await state.update_data(reason=message.text)
@@ -87,6 +110,7 @@ async def process_reason(message: Message, state: FSMContext):
     await message.answer("На ком ты играл?")
 
 
+# ШАГ 3: Герой → запись в таблицу
 @dp.message(Form.hero)
 async def process_hero(message: Message, state: FSMContext):
     data = await state.get_data()
@@ -102,12 +126,16 @@ async def process_hero(message: Message, state: FSMContext):
             telegram_id,
         ])
         await message.answer(
-            "✅ Запись добавлена в таблицу!\n\nЧтобы начать заново — нажми кнопку ниже или введи /start.",
-            reply_markup=start_keyboard,
+            "✅ Ну вот и всё, посмотрим что у тебя там\n\n"
+            "Хочешь скинуть ещё один реплей?",
+            reply_markup=main_keyboard,
         )
     except Exception as e:
         logging.error(f"Sheets error: {e}")
-        await message.answer("❌ Ошибка записи в таблицу. Попробуй позже.")
+        await message.answer(
+            "❌ Ошибка",
+            reply_markup=main_keyboard,
+        )
 
     await state.clear()
 
