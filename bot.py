@@ -114,8 +114,14 @@ async def process_reason(message: Message, state: FSMContext):
 @dp.message(Form.hero)
 async def process_hero(message: Message, state: FSMContext):
     data = await state.get_data()
-    telegram_id = message.from_user.id
     now = datetime.now()
+
+    # Собираем username. Если его нет — пишем Telegram ID.
+    username = message.from_user.username
+    if username:
+        user_field = "@" + username
+    else:
+        user_field = str(message.from_user.id)
 
     try:
         sheet.append_row([
@@ -123,7 +129,7 @@ async def process_hero(message: Message, state: FSMContext):
             data["match_id"],
             data["reason"],
             message.text,
-            telegram_id,
+            user_field,
         ])
         await message.answer(
             "✅ Ну вот и всё, посмотрим что у тебя там\n\n"
