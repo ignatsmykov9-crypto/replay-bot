@@ -13,6 +13,7 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
     KeyboardButton,
     ReplyKeyboardRemove,
+    Update,
 )
 from aiohttp import web
 import gspread
