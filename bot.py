@@ -130,10 +130,16 @@ async def handle_webhook(request):
     return web.Response(text="OK")
 
 
+async def health_check(request):
+    return web.Response(text="OK")
+
+
 async def main():
     logging.basicConfig(level=logging.INFO)
     app = web.Application()
     app.router.add_post(WEBHOOK_PATH, handle_webhook)
+    app.router.add_get("/health", health_check)
+    app.router.add_route("HEAD", "/health", health_check)
     app.on_startup.append(on_startup)
 
     runner = web.AppRunner(app)
