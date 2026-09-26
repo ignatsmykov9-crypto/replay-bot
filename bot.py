@@ -91,8 +91,8 @@ cancel_keyboard = ReplyKeyboardMarkup(
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        "Здаров бандит\n\n"
-        "Есть топовый реплей и хочешь скинуть? С радостью посмотрим что у тебя там",
+        "Здаров бандит\n"
+        "Все что интересно ниже",
         reply_markup=main_keyboard,
     )
 
