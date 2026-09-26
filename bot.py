@@ -68,7 +68,7 @@ links_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="▶️ YouTube"), KeyboardButton(text="🟣 Twitch")],
         [KeyboardButton(text="🔵 VK"), KeyboardButton(text="🟠 Boosty")],
-        [KeyboardButton(text="✈️ Telegram")],
+        [KeyboardButton(text="✈️ sereGGa Bets")],
         [KeyboardButton(text="⬅️ Назад")],
     ],
     resize_keyboard=True,
