@@ -12,7 +12,6 @@ from aiogram.types import (
     Message,
     ReplyKeyboardMarkup,
     KeyboardButton,
-    ReplyKeyboardRemove,
     Update,
 )
 from aiohttp import web
@@ -25,6 +24,15 @@ SHEET_ID = "1CUxQ-vv-MpeMEFdOV5me6KYUTqD6CGrEaZ1fesGRLyc"
 SHEET_NAME = "Лист1"
 WEBHOOK_PATH = "/webhook"
 PORT = int(os.environ.get("PORT", 8080))
+
+# ================== ССЫЛКИ ==================
+LINK_YOUTUBE = "https://www.youtube.com/@sereGGa"
+LINK_TWITCH = "https://www.twitch.tv/etoseregga"
+LINK_VK = "https://vk.ru/etoseregga"
+LINK_BOOSTY = "https://boosty.to/sereggaotec"
+LINK_TELEGRAM = "https://t.me/sereggabets"
+LINK_FOOTBALL = "https://t.me/stoparikfootball"
+LINK_REVIEW = "https://boosty.to/sereggaotec/purchase/3086351"
 
 # ================== GOOGLE SHEETS ==================
 scope = [
@@ -48,7 +56,26 @@ class Form(StatesGroup):
 
 # ================== КЛАВИАТУРЫ ==================
 main_keyboard = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="📥 Скинуть реплей")]],
+    keyboard=[
+        [KeyboardButton(text="📂 Мои ссылки")],
+        [KeyboardButton(text="⚽ Футбол"), KeyboardButton(text="🎯 Отдельный разбор")],
+        [KeyboardButton(text="📥 Скинуть реплей")],
+    ],
+    resize_keyboard=True,
+)
+
+links_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="▶️ YouTube"), KeyboardButton(text="🟣 Twitch")],
+        [KeyboardButton(text="🔵 VK"), KeyboardButton(text="🟠 Boosty")],
+        [KeyboardButton(text="✈️ Telegram")],
+        [KeyboardButton(text="⬅️ Назад")],
+    ],
+    resize_keyboard=True,
+)
+
+back_keyboard = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="⬅️ Назад")]],
     resize_keyboard=True,
 )
 
@@ -59,7 +86,7 @@ cancel_keyboard = ReplyKeyboardMarkup(
 
 # ================== ХЕНДЛЕРЫ ==================
 
-# /start — приветствие с кнопкой
+# /start — главное меню
 @dp.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
@@ -70,7 +97,72 @@ async def cmd_start(message: Message, state: FSMContext):
     )
 
 
-# Нажатие «📥 Скинуть реплей» — старт диалога
+# ===== РАЗДЕЛ «МОИ ССЫЛКИ» =====
+@dp.message(F.text == "📂 Мои ссылки")
+async def open_links(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Выбирай, куда перейти:",
+        reply_markup=links_keyboard,
+    )
+
+
+@dp.message(F.text == "▶️ YouTube")
+async def link_youtube(message: Message):
+    await message.answer(f"▶️ YouTube:\n{LINK_YOUTUBE}", reply_markup=back_keyboard)
+
+
+@dp.message(F.text == "🟣 Twitch")
+async def link_twitch(message: Message):
+    await message.answer(f"🟣 Twitch:\n{LINK_TWITCH}", reply_markup=back_keyboard)
+
+
+@dp.message(F.text == "🔵 VK")
+async def link_vk(message: Message):
+    await message.answer(f"🔵 VK:\n{LINK_VK}", reply_markup=back_keyboard)
+
+
+@dp.message(F.text == "🟠 Boosty")
+async def link_boosty(message: Message):
+    await message.answer(f"🟠 Boosty:\n{LINK_BOOSTY}", reply_markup=back_keyboard)
+
+
+@dp.message(F.text == "✈️ Telegram")
+async def link_telegram(message: Message):
+    await message.answer(f"✈️ Telegram:\n{LINK_TELEGRAM}", reply_markup=back_keyboard)
+
+
+# ===== РАЗДЕЛ «ФУТБОЛ» =====
+@dp.message(F.text == "⚽ Футбол")
+async def open_football(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        f"⚽ Футбольный клуб:\n{LINK_FOOTBALL}",
+        reply_markup=back_keyboard,
+    )
+
+
+# ===== РАЗДЕЛ «ОТДЕЛЬНЫЙ РАЗБОР» =====
+@dp.message(F.text == "🎯 Отдельный разбор")
+async def open_review(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        f"🎯 Отдельный разбор твоего реплея:\n{LINK_REVIEW}",
+        reply_markup=back_keyboard,
+    )
+
+
+# ===== КНОПКА «НАЗАД» =====
+@dp.message(F.text == "⬅️ Назад")
+async def go_back(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Главное меню:",
+        reply_markup=main_keyboard,
+    )
+
+
+# ===== РАЗДЕЛ «СКИНУТЬ РЕПЛЕЙ» =====
 @dp.message(F.text == "📥 Скинуть реплей")
 async def start_replay(message: Message, state: FSMContext):
     await state.clear()
@@ -116,7 +208,6 @@ async def process_hero(message: Message, state: FSMContext):
     data = await state.get_data()
     now = datetime.now()
 
-    # Собираем username. Если его нет — пишем Telegram ID.
     username = message.from_user.username
     if username:
         user_field = "@" + username
@@ -138,10 +229,7 @@ async def process_hero(message: Message, state: FSMContext):
         )
     except Exception as e:
         logging.error(f"Sheets error: {e}")
-        await message.answer(
-            "❌ Ошибка",
-            reply_markup=main_keyboard,
-        )
+        await message.answer("❌ Ошибка", reply_markup=main_keyboard)
 
     await state.clear()
 
